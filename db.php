@@ -8,8 +8,8 @@
  * 
  * @package Fuwz
  * @subpackage data/driver/mysql
- * @version 1.2.20
- * @date 21/10/2014
+ * @version 1.2.23
+ * @date 21/02/2015
  * @auther terry 
  * @email jstel@126.com
  * @license http://www.apache.org/licenses/LICENSE-2.0.html  apache-license-2.0 
@@ -27,7 +27,7 @@ class db {
      *
      * @return db
      */
-    private static $obj = null;
+    public static $obj = null;
     public $error;
     public $error_max_num = 20;
 
@@ -45,7 +45,7 @@ class db {
             $config['charset'] = intval($config['charset']) ? addslashes($config['charset']) : 'utf8';
             $dsn = 'mysql:dbname=' . $config['db'] . ';host=' . $config['host'] . ';port=' . $config['port'] . ';charset=' . $config['charset'];
             try {
-                $this->db_handle_current = new PDO($dsn, $config['user'], $config['password']);
+                $this->db_handle_current = new PDO($dsn, $config['user'], $config['password'], $opts);
             } catch (PDOException $e) {
                 echo 'Connection failed: ' . $e->getMessage();
                 die();
@@ -221,11 +221,11 @@ class db {
     }
 
     public function fetch_all($with_total_count = false) {
-
-        $this->count_sql = str_replace($this->count_replace, 'select count(*) as count', $this->sql);
-
+        
         if (!empty($this->sql_limit)) {
-            $this->sql .= $this->sql_limit;
+            $sql = $this->sql . $this->sql_limit;
+        } else {
+            $sql = $this->sql;
         }
         $sth = $this->db_handle_current->prepare($this->sql);
         $sth->execute();
@@ -237,9 +237,7 @@ class db {
         $sth = $this->db_handle_current->prepare($this->sql);
         $sth->execute();
         if ($with_total_count) {
-            $sth = $this->db_handle_current->prepare($this->count_sql);
-            $sth->execute();
-            $result['total'] = $sth->fetchColumn();
+            $result['total'] = $this->fetch_number();
         }
 
         return $result;
@@ -352,7 +350,7 @@ class db {
     }
 
     public function raw_query($query) {
-        return $this->db_handle_current->query();
+        return $this->db_handle_current->query($query);
     }
 
     public function raw_quote($value) {
