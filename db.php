@@ -43,6 +43,7 @@ class db {
         if (!empty($config)) {
             $config['port'] = intval($config['port']) ? intval($config['port']) : 3306;
             $config['charset'] = intval($config['charset']) ? addslashes($config['charset']) : 'utf8';
+            $opts = array(PDO::ATTR_TIMEOUT => 1);
             $dsn = 'mysql:dbname=' . $config['db'] . ';host=' . $config['host'] . ';port=' . $config['port'] . ';charset=' . $config['charset'];
             try {
                 $this->db_handle_current = new PDO($dsn, $config['user'], $config['password'], $opts);
